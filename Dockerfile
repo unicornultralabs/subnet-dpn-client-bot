@@ -13,11 +13,11 @@ RUN     apt-get update && \
 # Copy source code & install
 COPY    . .
 RUN     RUSTFLAGS="-C target-cpu=native" SQLX_OFFLINE=true cargo install --path .
-RUN		cp /app/target/release/admin /usr/local/bin/admin
+RUN		cp /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
 
 FROM    ubuntu:22.04
 RUN     apt-get update && apt-get -y install libssl3
-COPY    --from=build /app/target/release/admin /usr/local/bin/admin
+COPY    --from=build /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
 WORKDIR /
 
 ENTRYPOINT     ["proxy_client_bot"]
