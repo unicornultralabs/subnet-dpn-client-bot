@@ -61,7 +61,7 @@ async fn make_request(client: &Client) {
             );
         }
         Err(e) => {
-            error!("error when making request err=no peers online");
+            error!("error when making request err={}", e);
         }
     }
 }
