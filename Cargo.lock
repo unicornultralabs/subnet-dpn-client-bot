@@ -597,7 +597,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "proxy_consumer"
+name = "proxy_client_bot"
 version = "0.1.0"
 dependencies = [
  "env_logger",

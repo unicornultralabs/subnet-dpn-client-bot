@@ -1,0 +1,10 @@
+version: "3"
+services:
+  proxy_client_bot:
+    container_name: proxy_client_bot
+    build: .
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
