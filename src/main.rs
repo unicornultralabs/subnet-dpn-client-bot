@@ -17,9 +17,21 @@ async fn main() {
         ("clienttest5", "xzDHGOMZQQTj"),
         ("clienttest6", "yT2S8n23kA9u"),
         ("clienttest7", "y7Jr8YjdqhTg"),
+        ("clienttest8", "uIb8nQVCTbq8"),
+        ("client 9", "dK1NpQHFfukk"),
+        ("client 10", "ij8Cr7Tpuise"),
+        ("client 11", "wBK0cZgWOWyx"),
+        ("client_12", "SnUALSV6S7ov"),
+        ("client_13", "B5IXp9rGynim"),
+        ("client_14", "bkclxMEmvV1D"),
+        ("client_15", "RYCcT00v0Z3B"),
+        ("client_16", "V1oHqc5G5m3Z"),
+        ("client_17", "2Ird1HdWEjPO"),
+        ("client_18", "5vnFOBPvT4hT"),
+        ("client_19", "rVS6bDNR81kK"),
+        ("client_20", "vtPMnAxGSq5K"),
     ];
 
-    // Spawn 10 threads
     for i in 0..proxy_acc.len() {
         let (proxy_username, proxy_password) = proxy_acc[i];
         tokio::spawn(async move {
