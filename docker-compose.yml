@@ -1,7 +1,8 @@
 version: "3"
 services:
-  proxy_client_bot:
-    container_name: proxy_client_bot
+  client_bot:
+    container_name: client-bot
+    image: yadsendewlung/subnet-dpn-client-bot:develop
     build: .
     restart: always
     volumes:
