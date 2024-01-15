@@ -1,5 +1,7 @@
 use log::{error, info};
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use static_init::dynamic;
 use std::thread;
 use std::time::Duration;
 
@@ -8,32 +10,19 @@ async fn main() {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     // Set the HTTP proxy address and credentials
-    let proxy_address = "54.169.160.241:9091";
-    let proxy_acc = vec![
-        ("clienttest1", "reXZyqedjlTC"),
-        ("clienttest2", "AXUYWB5HivVR"),
-        ("clienttest3", "LJDpOAkhY4WR"),
-        ("clienttest4", "tZYUPtt5ogxu"),
-        ("clienttest5", "xzDHGOMZQQTj"),
-        ("clienttest6", "yT2S8n23kA9u"),
-        ("clienttest7", "y7Jr8YjdqhTg"),
-        ("clienttest8", "uIb8nQVCTbq8"),
-        ("client 9", "dK1NpQHFfukk"),
-        ("client 10", "ij8Cr7Tpuise"),
-        ("client 11", "wBK0cZgWOWyx"),
-        ("client_12", "SnUALSV6S7ov"),
-        ("client_13", "B5IXp9rGynim"),
-        ("client_14", "bkclxMEmvV1D"),
-        ("client_15", "RYCcT00v0Z3B"),
-        ("client_16", "V1oHqc5G5m3Z"),
-        ("client_17", "2Ird1HdWEjPO"),
-        ("client_18", "5vnFOBPvT4hT"),
-        ("client_19", "rVS6bDNR81kK"),
-        ("client_20", "vtPMnAxGSq5K"),
-    ];
+    let proxy_address = &APP_CONFIG.proxy_addr;
+    let proxy_acc: Vec<(&str, &str)> = APP_CONFIG
+        .proxy_acc
+        .clone()
+        .iter()
+        .map(|pad| {
+            let parses: Vec<&str> = pad.clone().split(":").collect();
+            (parses.clone()[0], parses.clone()[1])
+        })
+        .collect();
 
     for i in 0..proxy_acc.len() {
-        let (proxy_username, proxy_password) = proxy_acc[i];
+        let (proxy_username, proxy_password) = proxy_acc[i].clone();
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
 
@@ -41,7 +30,7 @@ async fn main() {
                 .proxy(
                     reqwest::Proxy::all(proxy_address)
                         .unwrap()
-                        .basic_auth(proxy_username, proxy_password),
+                        .basic_auth(&proxy_username, &proxy_password),
                 )
                 .build()
                 .unwrap();
@@ -59,7 +48,7 @@ async fn main() {
 
 // Function to make an HTTP request using the provided client
 async fn make_request(client: &Client) {
-    let url = "https://github.com/unicornultrafoundation/u2u-genesis/raw/main/testnet.g";
+    let url = &APP_CONFIG.download_url;
 
     // Make a GET request
     match client.get(url).send().await {
@@ -76,4 +65,19 @@ async fn make_request(client: &Client) {
             error!("error when making request err={}", e);
         }
     }
+}
+
+#[dynamic]
+pub static APP_CONFIG: AppConfig = {
+    let mut file = std::fs::File::open("config.yaml").unwrap();
+    let mut contents = String::new();
+    std::io::Read::read_to_string(&mut file, &mut contents).unwrap();
+    serde_yaml::from_str(&contents).unwrap()
+};
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct AppConfig {
+    pub proxy_addr: String,
+    pub download_url: String,
+    pub proxy_acc: Vec<String>,
 }

@@ -1,0 +1,4 @@
+proxy_addr: 54.169.160.241:9091
+download_url: https://github.com/unicornultrafoundation/u2u-genesis/raw/main/testnet.g
+proxy_acc:
+  - 
