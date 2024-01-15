@@ -13,11 +13,12 @@ async fn main() {
     let proxy_address = &APP_CONFIG.proxy_addr;
     let proxy_acc: Vec<(&str, &str)> = APP_CONFIG
         .proxy_acc
-        .clone()
         .iter()
         .map(|pad| {
-            let parses: Vec<&str> = pad.clone().split(":").collect();
-            (parses.clone()[0], parses.clone()[1])
+            let parses: Vec<&str> = pad.split(",").collect();
+            let username = parses[0];
+            let password = parses[1];
+            (username, password)
         })
         .collect();
 
