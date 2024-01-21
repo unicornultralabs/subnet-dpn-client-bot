@@ -1,0 +1,23 @@
+proxy_addr: 54.179.136.252:9091
+download_url: https://github.com/unicornultrafoundation/u2u-genesis/raw/main/testnet.g
+proxy_acc:
+  - 0x0f3e0d82e48416ae8ad9976e297fea2a6b2ea16c39c6b4180c897dcca581d1dc,RSetCWj2zG4g
+  - 0x291dc5fea314de9eaf55f0b96a9419c15a8c0e9d34a5126961546ce526304764,xVKmQKS4vPry
+  - 0x08a16ee18a2479bb86024261b9ae02dd05dba63c04905ec0cec05c6be4d02901,qXQwHGnvlabm
+  # - clienttest4,tZYUPtt5ogxu
+  # - clienttest5,xzDHGOMZQQTj
+  # - clienttest6,yT2S8n23kA9u
+  # - clienttest7,y7Jr8YjdqhTg
+  # - clienttest8,uIb8nQVCTbq8
+  # - client9,dK1NpQHFfukk
+  # - client10,ij8Cr7Tpuise
+  # - client11,wBK0cZgWOWyx
+  # - client_12,SnUALSV6S7ov
+  # - client_13,B5IXp9rGynim
+  # - client_14,bkclxMEmvV1D
+  # - client_15,RYCcT00v0Z3B
+  # - client_16,V1oHqc5G5m3Z
+  # - client_17,2Ird1HdWEjPO
+  # - client_18,5vnFOBPvT4hT
+  # - client_19,rVS6bDNR81kK
+  # - client_20,vtPMnAxGSq5K
