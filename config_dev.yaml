@@ -1,25 +1,6 @@
 proxy_addr: 54.179.136.252:9091
-# download_url: https://github.com/unicornultrafoundation/u2u-genesis/raw/main/testnet.g
-# download_url: https://vnexpress.net
-download_url: https://github.com/sjcrookes/mmdb2dat-rust/raw/main/GeoIP2-Country.mmdb
+download_url: https://github.com/unicornultralabs/subnet-dpn-client-bot/raw/main/testfile.mmdb
 proxy_acc:
   - 0x24057bbddb7051d1f82ac0da6ab26943cf634f3d4642f6eeb09cd5c6fd6cc4c1,ikoUPoCQyLQI
   # - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f13,Bk3uHdiSIdlk
   # - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f14,Bk3uHdiSIdlk
-  # - clienttest4,tZYUPtt5ogxu
-  # - clienttest5,xzDHGOMZQQTj
-  # - clienttest6,yT2S8n23kA9u
-  # - clienttest7,y7Jr8YjdqhTg
-  # - clienttest8,uIb8nQVCTbq8
-  # - client9,dK1NpQHFfukk
-  # - client10,ij8Cr7Tpuise
-  # - client11,wBK0cZgWOWyx
-  # - client_12,SnUALSV6S7ov
-  # - client_13,B5IXp9rGynim
-  # - client_14,bkclxMEmvV1D
-  # - client_15,RYCcT00v0Z3B
-  # - client_16,V1oHqc5G5m3Z
-  # - client_17,2Ird1HdWEjPO
-  # - client_18,5vnFOBPvT4hT
-  # - client_19,rVS6bDNR81kK
-  # - client_20,vtPMnAxGSq5K
