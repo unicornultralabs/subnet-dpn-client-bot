@@ -12,15 +12,15 @@ services:
       driver: "json-file"
       options:
         max-size: "2048m"
-  # client_bot_dev:
-  #   container_name: client-bot-dev
-  #   image: yadsendewlung/subnet-dpn-client-bot:develop
-  #   build: .
-  #   restart: always
-  #   volumes:
-  #     - ./config_dev.yaml:/config.yaml
-  #     - /etc:/etc
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "2048m"
+  client_bot_dev:
+    container_name: client-bot-dev
+    image: yadsendewlung/subnet-dpn-client-bot:develop
+    build: .
+    restart: always
+    volumes:
+      - ./config_dev.yaml:/config.yaml
+      - /etc:/etc
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"

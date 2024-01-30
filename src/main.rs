@@ -53,15 +53,15 @@ async fn make_request(client: &Client) {
 
     // Make a GET request
     match client.get(url).send().await {
-        Ok(rsp) => {
-            // let content = rsp.text().await;
-            // info!("{}", content.unwrap_or("".to_string()));
-
-            info!(
-                "used {} bytes",
-                rsp.bytes().await.map(|bz| bz.len()).unwrap_or_default()
-            );
-        }
+        Ok(rsp) => match rsp.text().await {
+            Ok(content) => {
+                // info!("{}", content);
+                info!("used {} bytes", content.as_bytes().len());
+            }
+            Err(_) => {
+                error!("invalid response format");
+            }
+        },
         Err(e) => {
             error!("error when making request err={}", e);
         }
