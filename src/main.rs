@@ -1,7 +1,9 @@
+use headless_chrome::{Browser, LaunchOptionsBuilder};
 use log::{error, info};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use static_init::dynamic;
+use std::ffi::OsStr;
 use std::thread;
 use std::time::Duration;
 
@@ -27,17 +29,29 @@ async fn main() {
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
 
-            let client = reqwest::Client::builder()
-                .proxy(
-                    reqwest::Proxy::all(proxy_address)
-                        .unwrap()
-                        .basic_auth(&proxy_username, &proxy_password),
-                )
-                .build()
-                .unwrap();
+            // Define proxy settings with basic authentication
+            let proxy_server = format!(
+                "https://{}:{}@{}",
+                proxy_username, proxy_password, proxy_address
+            );
+
+            // Launch headless Chrome with proxy settings
+            let browser = Browser::new(
+                LaunchOptionsBuilder::default()
+                    .headless(true)
+                    .args(vec![OsStr::new(&format!(
+                        "--proxy-server={}",
+                        proxy_server
+                    ))])
+                    .build()
+                    .expect("Failed to create browser"),
+            )
+            .expect("Failed to launch browser");
+            let tab = browser.new_tab().expect("new tab failed");
 
             loop {
-                make_request(&client).await;
+                tab.navigate_to("https://vnexpress.net")
+                    .expect("page load failed");
 
                 thread::sleep(Duration::from_secs(1));
             }
@@ -70,7 +84,7 @@ async fn make_request(client: &Client) {
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
-    let mut file = std::fs::File::open("config.yaml").unwrap();
+    let mut file = std::fs::File::open("config_stg.yaml").unwrap();
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents).unwrap();
     serde_yaml::from_str(&contents).unwrap()

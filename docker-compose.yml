@@ -1,5 +1,17 @@
 version: "3"
 services:
+  client_bot_prod:
+    container_name: client-bot-prod
+    image: yadsendewlung/subnet-dpn-client-bot:develop
+    build: .
+    restart: always
+    volumes:
+      - ./config_prod.yaml:/config.yaml
+      - /etc:/etc
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
   client_bot_stg:
     container_name: client-bot-stg
     image: yadsendewlung/subnet-dpn-client-bot:develop
