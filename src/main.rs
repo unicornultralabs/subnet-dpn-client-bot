@@ -36,7 +36,7 @@ async fn main() {
             // Launch headless Chrome with proxy settings
             let browser = Browser::new(
                 LaunchOptionsBuilder::default()
-                    .headless(false)
+                    .headless(true)
                     .args(vec![OsStr::new(&format!(
                         "--proxy-server={}",
                         proxy_server
