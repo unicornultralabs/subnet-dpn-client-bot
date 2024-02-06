@@ -30,15 +30,13 @@ async fn main() {
             info!("spawned for {}", proxy_username);
 
             // Define proxy settings with basic authentication
-            let proxy_server = format!(
-                "https://{}:{}@{}",
-                proxy_username, proxy_password, proxy_address
-            );
+            let proxy_server = format!("https://{}", proxy_address);
+            info!("{}", proxy_server);
 
             // Launch headless Chrome with proxy settings
             let browser = Browser::new(
                 LaunchOptionsBuilder::default()
-                    .headless(true)
+                    .headless(false)
                     .args(vec![OsStr::new(&format!(
                         "--proxy-server={}",
                         proxy_server
@@ -48,12 +46,17 @@ async fn main() {
             )
             .expect("Failed to launch browser");
             let tab = browser.new_tab().expect("new tab failed");
+            tab.authenticate(
+                Some(proxy_username.to_string()),
+                Some(proxy_password.to_string()),
+            )
+            .expect("add auth");
 
             loop {
+                // info!("proxy acc loaded vnexpress.net id={}", proxy_username);
                 tab.navigate_to("https://vnexpress.net")
                     .expect("page load failed");
-
-                thread::sleep(Duration::from_secs(1));
+                thread::sleep(Duration::from_secs(2));
             }
         });
     }
@@ -84,7 +87,7 @@ async fn make_request(client: &Client) {
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
-    let mut file = std::fs::File::open("config_stg.yaml").unwrap();
+    let mut file = std::fs::File::open("config_prod.yaml").unwrap();
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents).unwrap();
     serde_yaml::from_str(&contents).unwrap()
