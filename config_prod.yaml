@@ -1,11 +1,12 @@
+headless: true
 proxy_addr: https://13.250.33.117:9091
-download_url: https://github.com/unicornultralabs/subnet-dpn-client-bot/raw/main/testfile.mmdb
+download_url: https://u2dpn.xyz
 proxy_acc:
   - 0xcd6f2277d1ec429fd9c28144fd4f0e75c5bd883265ccb20bec69360265494e8b,gSjeJDzsoTR1
-  # - 0xc3b776c4da72ca3469d7994e78f6ad46313d72f962b4b9663e70e22878a95599,Or7miIB36Xop
-  # - 0xcfd8b830258cd21342888ea2f4dc04035cfef6a23ebec76690ec421fd036c711,WXdromSDsi4E
-  # - 0x43ae2aa7139a9901a7f38af3baa63e78761a3dab7410943a5e2162b9640b2dff,6I41nTD1ZQuk
-  # - 0x9964aec41043787f820b2737f0751807880e1c7ac6c3c2173e01dfc3f9862a10,pkSbW2G4frJe
+  - 0xc3b776c4da72ca3469d7994e78f6ad46313d72f962b4b9663e70e22878a95599,Or7miIB36Xop
+  - 0xcfd8b830258cd21342888ea2f4dc04035cfef6a23ebec76690ec421fd036c711,WXdromSDsi4E
+  - 0x43ae2aa7139a9901a7f38af3baa63e78761a3dab7410943a5e2162b9640b2dff,6I41nTD1ZQuk
+  - 0x9964aec41043787f820b2737f0751807880e1c7ac6c3c2173e01dfc3f9862a10,pkSbW2G4frJe
   # - 0x33690c2d48c4583a524cf6de5b7f966558e44fc24da2d52ccb2667465d3c18f6,dzErkFxIANlI
   # - 0x24f1eb79e02204a0ae4e1f7aafc84923b5d2104d085506d532afc8531b225cc1,o2AYtJTOn9Gg
   # - 0xb270b227e33c909273f99ca1b062cc9ce4682f4877794b2512954e9acadc40bc,UPzqhQOgCyap

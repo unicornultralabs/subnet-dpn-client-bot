@@ -1,5 +1,6 @@
+headless: true
 proxy_addr: https://18.141.190.90:9091
-download_url: https://github.com/unicornultralabs/subnet-dpn-client-bot/raw/main/testfile.mmdb
+download_url: https://u2dpn.xyz
 proxy_acc:
   - 0xcd6f2277d1ec429fd9c28144fd4f0e75c5bd883265ccb20bec69360265494e8b,gSjeJDzsoTR1
   # - 0xc3b776c4da72ca3469d7994e78f6ad46313d72f962b4b9663e70e22878a95599,Or7miIB36Xop

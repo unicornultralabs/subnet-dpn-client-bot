@@ -81,7 +81,7 @@ async fn make_request(client: &Client) {
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
-    let mut file = std::fs::File::open("config_prod.yaml").unwrap();
+    let mut file = std::fs::File::open("config_dev.yaml").unwrap();
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents).unwrap();
     serde_yaml::from_str(&contents).unwrap()
