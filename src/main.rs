@@ -37,7 +37,7 @@ async fn main() {
                 // Launch headless Chrome with proxy settings
                 let browser = Browser::new(
                     LaunchOptionsBuilder::default()
-                        .headless(false)
+                        .headless(APP_CONFIG.headless)
                         .args(vec![OsStr::new(&format!(
                             "--proxy-server={} --proxy-auth={}",
                             proxy_address, proxy_auth,
@@ -48,9 +48,7 @@ async fn main() {
                 .expect("Failed to launch browser");
                 let tabs = browser.get_tabs().lock().unwrap();
                 for tab in tabs.iter() {
-                    _ = tab.navigate_to("https://u2dpn.xyz");
-                    // tab.navigate_to("https://vnexpress.net")
-                    // tab.navigate_to("https://whatismyipazddress.com")
+                    _ = tab.navigate_to(&APP_CONFIG.download_url);
                 }
                 thread::sleep(Duration::from_secs(3));
             }
@@ -91,6 +89,7 @@ pub static APP_CONFIG: AppConfig = {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
+    pub headless: bool,
     pub proxy_addr: String,
     pub download_url: String,
     pub proxy_acc: Vec<String>,
