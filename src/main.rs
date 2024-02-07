@@ -33,32 +33,26 @@ async fn main() {
             info!("proxy_auth={} ", proxy_auth);
             info!("proxy_address={}", proxy_address);
 
-            // Launch headless Chrome with proxy settings
-            let browser = Browser::new(
-                LaunchOptionsBuilder::default()
-                    .headless(false)
-                    .args(vec![OsStr::new(&format!(
-                        "--proxy-server={} --proxy-auth={}",
-                        proxy_address, proxy_auth,
-                    ))])
-                    .build()
-                    .expect("Failed to create browser"),
-            )
-            .expect("Failed to launch browser");
-            let tab = browser.new_tab().expect("new tab failed");
-            tab.authenticate(
-                Some(proxy_username.to_string()),
-                Some(proxy_password.to_string()),
-            )
-            .expect("add auth");
-
             loop {
-                // info!("proxy acc loaded vnexpress.net id={}", proxy_username);
-                // tab.navigate_to("https://vnexpress.net")
-                tab.navigate_to("https://u2dpn.xyz")
-                // tab.navigate_to("https://whatismyipaddress.com")
-                    .expect("page load failed");
-                thread::sleep(Duration::from_secs(10));
+                // Launch headless Chrome with proxy settings
+                let browser = Browser::new(
+                    LaunchOptionsBuilder::default()
+                        .headless(false)
+                        .args(vec![OsStr::new(&format!(
+                            "--proxy-server={} --proxy-auth={}",
+                            proxy_address, proxy_auth,
+                        ))])
+                        .build()
+                        .expect("Failed to create browser"),
+                )
+                .expect("Failed to launch browser");
+                let tabs = browser.get_tabs().lock().unwrap();
+                for tab in tabs.iter() {
+                    _ = tab.navigate_to("https://u2dpn.xyz");
+                    // tab.navigate_to("https://vnexpress.net")
+                    // tab.navigate_to("https://whatismyipazddress.com")
+                }
+                thread::sleep(Duration::from_secs(3));
             }
         });
     }
