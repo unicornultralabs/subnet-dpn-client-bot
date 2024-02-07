@@ -1,4 +1,4 @@
-proxy_addr: 54.179.136.252:9091
+proxy_addr: https:://54.179.136.252:9091
 download_url: https://github.com/unicornultralabs/subnet-dpn-client-bot/raw/main/testfile.mmdb
 proxy_acc:
   - 0x24057bbddb7051d1f82ac0da6ab26943cf634f3d4642f6eeb09cd5c6fd6cc4c1,ikoUPoCQyLQI
