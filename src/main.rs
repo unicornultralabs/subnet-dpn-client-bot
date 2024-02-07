@@ -1,3 +1,4 @@
+use headless_chrome::protocol::cdp::Target::CreateTarget;
 use headless_chrome::{Browser, LaunchOptionsBuilder};
 use log::{error, info};
 use reqwest::Client;
@@ -48,17 +49,29 @@ async fn main() {
             )
             .expect("Failed to launch browser");
 
+            let tab = browser
+                .new_tab_with_options(CreateTarget {
+                    url: APP_CONFIG.download_url.clone(),
+                    width: Some(300),
+                    height: Some(300),
+                    browser_context_id: None,
+                    enable_begin_frame_control: None,
+                    new_window: None,
+                    background: None,
+                })
+                .unwrap();
+            sleep(Duration::from_secs(1));
+
+            _ = tab.authenticate(
+                Some(proxy_username.to_string()),
+                Some(proxy_password.to_string()),
+            );
+
+            sleep(Duration::from_secs(2));
+
             loop {
-                let tabs = browser.get_tabs().lock().unwrap();
-                for tab in tabs.iter() {
-                    _ = tab.authenticate(
-                        Some(proxy_username.to_string()),
-                        Some(proxy_password.to_string()),
-                    );
-                    sleep(Duration::from_secs(2));
-                    _ = tab.navigate_to(&APP_CONFIG.download_url);
-                    // _ = tab.navigate_to(&APP_CONFIG.download_url);
-                }
+                _ = tab.navigate_to(&APP_CONFIG.download_url);
+                // _ = tab.navigate_to(&APP_CONFIG.download_url);
                 sleep(Duration::from_secs(3));
             }
         });
