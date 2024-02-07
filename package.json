@@ -1,0 +1,24 @@
+{
+  "name": "subnet-dpn-client-bot",
+  "version": "1.0.0",
+  "description": "``` # Login docker hub docker login -u yadsendewlung dckr_pat_SC_07rDvodSE70143NDQQYBj1H0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unicornultralabs/subnet-dpn-client-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unicornultralabs/subnet-dpn-client-bot/issues"
+  },
+  "homepage": "https://github.com/unicornultralabs/subnet-dpn-client-bot#readme",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "proxy-chain": "^2.4.0",
+    "puppeteer": "^22.0.0"
+  }
+}
