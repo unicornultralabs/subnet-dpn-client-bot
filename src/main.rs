@@ -29,17 +29,17 @@ async fn main() {
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
 
-            // Define proxy settings with basic authentication
-            let proxy_server = format!("https://{}", proxy_address);
-            info!("{}", proxy_server);
+            let proxy_auth = format!("{}:{}", proxy_username, proxy_password);
+            info!("proxy_auth={} ", proxy_auth);
+            info!("proxy_address={}", proxy_address);
 
             // Launch headless Chrome with proxy settings
             let browser = Browser::new(
                 LaunchOptionsBuilder::default()
-                    .headless(true)
+                    .headless(false)
                     .args(vec![OsStr::new(&format!(
-                        "--proxy-server={}",
-                        proxy_server
+                        "--proxy-server={} --proxy-auth={}",
+                        proxy_address, proxy_auth,
                     ))])
                     .build()
                     .expect("Failed to create browser"),
@@ -54,9 +54,11 @@ async fn main() {
 
             loop {
                 // info!("proxy acc loaded vnexpress.net id={}", proxy_username);
-                tab.navigate_to("https://vnexpress.net")
+                // tab.navigate_to("https://vnexpress.net")
+                tab.navigate_to("https://u2dpn.xyz")
+                // tab.navigate_to("https://whatismyipaddress.com")
                     .expect("page load failed");
-                thread::sleep(Duration::from_secs(2));
+                thread::sleep(Duration::from_secs(10));
             }
         });
     }
