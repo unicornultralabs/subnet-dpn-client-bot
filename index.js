@@ -49,8 +49,6 @@ if (isMainThread) {
 
             const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-            let i = 0
-
             while (true) {
                 try {
                     console.log("navigating")

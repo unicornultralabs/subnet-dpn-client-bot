@@ -4,8 +4,9 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use static_init::dynamic;
 use std::ffi::OsStr;
-use std::thread;
+use std::thread::sleep;
 use std::time::Duration;
+use tokio::task::JoinSet;
 
 #[tokio::main]
 async fn main() {
@@ -24,59 +25,46 @@ async fn main() {
         })
         .collect();
 
+    let mut set = JoinSet::new();
+
     for i in 0..proxy_acc.len() {
         let (proxy_username, proxy_password) = proxy_acc[i].clone();
-        tokio::spawn(async move {
-            info!("spawned for {}", proxy_username);
-
-            let proxy_auth = format!("{}:{}", proxy_username, proxy_password);
-            info!("proxy_auth={} ", proxy_auth);
+        set.spawn(async move {
             info!("proxy_address={}", proxy_address);
+            info!("spawned for {}:{}", proxy_username, proxy_password);
+            // let proxy_addr = format!("http://{}", proxy_address);
+            // let proxy_addr = format!("http://{}:{}@{}", proxy_username, proxy_password, proxy_address);
+
+            // Launch headless Chrome with proxy settings
+            let browser = Browser::new(
+                LaunchOptionsBuilder::default()
+                    .headless(APP_CONFIG.headless)
+                    .args(vec![OsStr::new(&format!(
+                        "--proxy-server={}",
+                        proxy_address
+                    ))])
+                    .build()
+                    .expect("Failed to create browser"),
+            )
+            .expect("Failed to launch browser");
 
             loop {
-                // Launch headless Chrome with proxy settings
-                let browser = Browser::new(
-                    LaunchOptionsBuilder::default()
-                        .headless(APP_CONFIG.headless)
-                        .args(vec![OsStr::new(&format!(
-                            "--proxy-server={} --proxy-auth={}",
-                            proxy_address, proxy_auth,
-                        ))])
-                        .build()
-                        .expect("Failed to create browser"),
-                )
-                .expect("Failed to launch browser");
                 let tabs = browser.get_tabs().lock().unwrap();
                 for tab in tabs.iter() {
+                    _ = tab.authenticate(
+                        Some(proxy_username.to_string()),
+                        Some(proxy_password.to_string()),
+                    );
+                    sleep(Duration::from_secs(2));
                     _ = tab.navigate_to(&APP_CONFIG.download_url);
+                    // _ = tab.navigate_to(&APP_CONFIG.download_url);
                 }
-                thread::sleep(Duration::from_secs(3));
+                sleep(Duration::from_secs(3));
             }
         });
     }
 
-    loop {}
-}
-
-// Function to make an HTTP request using the provided client
-async fn make_request(client: &Client) {
-    let url = &APP_CONFIG.download_url;
-
-    // Make a GET request
-    match client.get(url).send().await {
-        Ok(rsp) => match rsp.text().await {
-            Ok(content) => {
-                // info!("{}", content);
-                info!("used {} bytes", content.as_bytes().len());
-            }
-            Err(_) => {
-                error!("invalid response format");
-            }
-        },
-        Err(e) => {
-            error!("error when making request err={}", e);
-        }
-    }
+    while let Some(_) = set.join_next().await {}
 }
 
 #[dynamic]
