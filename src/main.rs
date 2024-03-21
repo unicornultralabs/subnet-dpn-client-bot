@@ -109,7 +109,6 @@ async fn make_request(
                             > Duration::from_secs(EMAIL_MAX_SUCCESS_TIMEOUT)
                         {
                             info!("recovered after failure");
-                            last_success_time.set_now();
                             send_email(
                                 &APP_CONFIG.email_subscriber,
                                 EMAIL_SUBJECT,
@@ -117,6 +116,7 @@ async fn make_request(
                             )
                             .await;
                         }
+                        last_success_time.set_now();
                     }
                     _ => {}
                 },
@@ -159,7 +159,7 @@ async fn send_email(recipient: &str, subject: &str, body: &str) {
 
     // Check if the request was successful
     if response.status().is_success() {
-        info!("Email sent successfully!");
+        info!("Email sent body={}", body);
     } else {
         error!("Failed to send email: {:?}", response.text().await.unwrap());
     }
