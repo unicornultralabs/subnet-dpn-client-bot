@@ -1,15 +1,17 @@
+use atomic_instant::AtomicInstant;
 use log::{error, info};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use static_init::dynamic;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use tokio::time::sleep;
 
 const EMAIL_SUBJECT: &str = "Proxy client status";
+const EMAIL_MAX_SUCCESS_TIMEOUT: u64 = 60;
 
 #[tokio::main]
 async fn main() {
@@ -28,7 +30,7 @@ async fn main() {
         })
         .collect();
 
-    let has_failed = Arc::new(AtomicBool::new(false));
+    let last_success_time = Arc::new(AtomicInstant::now());
 
     send_email(
         &APP_CONFIG.email_subscriber,
@@ -37,12 +39,12 @@ async fn main() {
     )
     .await;
 
-    let has_failed_1 = has_failed.clone();
-    let has_failed_2 = has_failed.clone();
+    let last_success_time_1 = last_success_time.clone();
+    let last_success_time_2 = last_success_time.clone();
 
     for i in 0..proxy_acc.len() {
         let (proxy_username, proxy_password) = proxy_acc[i].clone();
-        let has_failed = has_failed_1.clone();
+        let last_success_time = last_success_time_1.clone();
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
             loop {
@@ -50,28 +52,33 @@ async fn main() {
                     proxy_addr,
                     proxy_username,
                     proxy_password,
-                    has_failed.clone(),
+                    last_success_time.clone(),
                 )
                 .await;
-                thread::sleep(Duration::from_secs(1));
+                sleep(Duration::from_secs(1)).await;
             }
         });
     }
 
-    // check for proxy failure, sent email every 1 mins if it's keep failing.
-    loop {
-        let has_failed = has_failed_2.clone();
-        if has_failed.load(Ordering::SeqCst) {
-            send_email(
-                &APP_CONFIG.email_subscriber,
-                EMAIL_SUBJECT,
-                "proxy server seems down",
-            )
-            .await;
-        }
+    // check for proxy failure, every 1 mins if it's keep failing sent email.
+    tokio::spawn(async move {
+        let last_success_time = last_success_time_2.clone();
 
-        sleep(Duration::from_secs(60)).await;
-    }
+        loop {
+            if last_success_time.elapsed() > Duration::from_secs(EMAIL_MAX_SUCCESS_TIMEOUT) {
+                send_email(
+                    &APP_CONFIG.email_subscriber,
+                    EMAIL_SUBJECT,
+                    "proxy server seems down",
+                )
+                .await;
+            }
+
+            sleep(Duration::from_secs(60)).await;
+        }
+    });
+
+    loop {}
 }
 
 // Function to make an HTTP request using the provided client
@@ -79,7 +86,7 @@ async fn make_request(
     proxy_address: &str,
     username: &str,
     password: &str,
-    has_failed: Arc<AtomicBool>,
+    last_success_time: Arc<AtomicInstant>,
 ) {
     let url = &APP_CONFIG.download_url;
 
@@ -98,9 +105,11 @@ async fn make_request(
                     Ok(content) => {
                         // info!("{}", content);
                         info!("used {} bytes", content.as_bytes().len());
-                        if has_failed.load(Ordering::SeqCst) {
+                        if last_success_time.elapsed()
+                            > Duration::from_secs(EMAIL_MAX_SUCCESS_TIMEOUT)
+                        {
                             info!("recovered after failure");
-                            has_failed.store(false, Ordering::SeqCst);
+                            last_success_time.set_now();
                             send_email(
                                 &APP_CONFIG.email_subscriber,
                                 EMAIL_SUBJECT,
@@ -113,7 +122,6 @@ async fn make_request(
                 },
                 Err(e) => {
                     error!("error when making request err={}", e);
-                    has_failed.store(true, Ordering::SeqCst);
                 }
             }
         }
