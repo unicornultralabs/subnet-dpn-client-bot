@@ -4,14 +4,9 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use static_init::dynamic;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use std::thread;
 use std::time::Duration;
 use tokio::time::sleep;
-
-const EMAIL_SUBJECT: &str = "Proxy client status";
-const EMAIL_MAX_SUCCESS_TIMEOUT: u64 = 60;
 
 #[tokio::main]
 async fn main() {
@@ -34,7 +29,7 @@ async fn main() {
 
     send_email(
         &APP_CONFIG.email_subscriber,
-        EMAIL_SUBJECT,
+        &APP_CONFIG.email_subject,
         "client bot is running",
     )
     .await;
@@ -65,10 +60,10 @@ async fn main() {
         let last_success_time = last_success_time_2.clone();
 
         loop {
-            if last_success_time.elapsed() > Duration::from_secs(EMAIL_MAX_SUCCESS_TIMEOUT) {
+            if last_success_time.elapsed() > Duration::from_secs(APP_CONFIG.max_success_timeout) {
                 send_email(
                     &APP_CONFIG.email_subscriber,
-                    EMAIL_SUBJECT,
+                    &APP_CONFIG.email_subject,
                     "proxy server seems down",
                 )
                 .await;
@@ -106,12 +101,12 @@ async fn make_request(
                         // info!("{}", content);
                         info!("used {} bytes", content.as_bytes().len());
                         if last_success_time.elapsed()
-                            > Duration::from_secs(EMAIL_MAX_SUCCESS_TIMEOUT)
+                            > Duration::from_secs(APP_CONFIG.max_success_timeout)
                         {
                             info!("recovered after failure");
                             send_email(
                                 &APP_CONFIG.email_subscriber,
-                                EMAIL_SUBJECT,
+                                &APP_CONFIG.email_subject,
                                 "recovered after failure",
                             )
                             .await;
@@ -185,8 +180,9 @@ pub struct AppConfig {
     pub email_token: String,
     pub email_sender: String,
     pub email_subscriber: String,
-    pub email_sending_cooldown_secs: u64,
+    pub email_subject: String,
 
+    pub max_success_timeout: u64,
     pub proxy_addr: String,
     pub download_url: String,
     pub proxy_acc: Vec<String>,
