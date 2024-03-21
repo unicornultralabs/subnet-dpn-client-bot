@@ -1,6 +1,8 @@
 # Email noti
 email_token: mlsn.cd84857d974305438209ba8df4935b785c9e9e67e870756c09cda27451b25c14
-email_subscriber: lnp279@gmail.com
+email_sender: MS_DzG3KF@trial-ynrw7gyq93j42k8e.mlsender.net
+email_subscriber: phatln@uniultra.xyz
+email_sending_cooldown_secs: 60
 
 # Proxy configs
 proxy_addr: 54.179.136.252:9091

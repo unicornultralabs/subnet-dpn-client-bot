@@ -8,6 +8,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use static_init::dynamic;
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -32,6 +33,8 @@ async fn main() {
         .collect();
 
     let last_sent_at = Arc::new(RwLock::new(Instant::now()));
+    let failed_request_count = Arc::new(AtomicU16::new(0));
+
     info!("0");
 
     send_email(
@@ -44,6 +47,7 @@ async fn main() {
     for i in 0..proxy_acc.len() {
         let (proxy_username, proxy_password) = proxy_acc[i].clone();
         let last_sent_at = last_sent_at.clone();
+        let failed_request_count = failed_request_count.clone();
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
             loop {
@@ -52,6 +56,7 @@ async fn main() {
                     proxy_username,
                     proxy_password,
                     last_sent_at.clone(),
+                    failed_request_count.clone(),
                 )
                 .await;
                 thread::sleep(Duration::from_secs(1));
@@ -68,6 +73,7 @@ async fn make_request(
     username: &str,
     password: &str,
     last_sent_at: Arc<RwLock<Instant>>,
+    failed_request_count: Arc<AtomicU16>,
 ) {
     let url = &APP_CONFIG.download_url;
 
@@ -91,17 +97,23 @@ async fn make_request(
                 },
                 Err(e) => {
                     error!("error when making request err={}", e);
-                    if e.to_string().contains("unexpected eof while tunneling") {
-                        error!("maybe proxy server is down :(");
-                        let last_sent_at = { last_sent_at.read().await };
-                        // every 5 mins
-                        if last_sent_at.elapsed() > Duration::from_secs(5 * 60) {
-                            send_email(
-                                &APP_CONFIG.email_subscriber,
-                                "Proxy server seems down!",
-                                "",
-                            )
-                            .await;
+                    let failure_counts = failed_request_count.fetch_add(1, Ordering::SeqCst) + 1;
+
+                    let last_sent_at_inner = { last_sent_at.read().await.clone() };
+                    // every 5 mins
+                    if last_sent_at_inner.elapsed()
+                        > Duration::from_secs(APP_CONFIG.email_sending_cooldown_secs)
+                    {
+                        send_email(
+                            &APP_CONFIG.email_subscriber,
+                            "Proxy server seems down!",
+                            &format!("Total failed: {}", failure_counts),
+                        )
+                        .await;
+
+                        {
+                            let mut last_sent_at_wlk = last_sent_at.write().await;
+                            *last_sent_at_wlk = Instant::now();
                         }
                     }
                 }
@@ -116,13 +128,13 @@ async fn make_request(
 async fn send_email(recipient: &str, subject: &str, body: &str) {
     let payload = json!({
         "from": {
-            "email": "clientbot@u2dpn.xyz",
+            "email": APP_CONFIG.email_sender,
         },
         "to":[
             { "email": recipient }
         ],
         "subject": subject,
-        "text": body,
+        "text": if body == "" { subject } else { body},
     });
 
     // Send the POST request
@@ -165,7 +177,9 @@ pub static APP_CONFIG: AppConfig = {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
     pub email_token: String,
+    pub email_sender: String,
     pub email_subscriber: String,
+    pub email_sending_cooldown_secs: u64,
 
     pub proxy_addr: String,
     pub download_url: String,
