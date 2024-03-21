@@ -4,7 +4,9 @@ use lettre::{Message, SmtpTransport, Transport};
 use log::{error, info};
 use mail_send::mail_builder::MessageBuilder;
 use mail_send::SmtpClientBuilder;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use static_init::dynamic;
 use std::sync::Arc;
 use std::thread;
@@ -33,7 +35,7 @@ async fn main() {
     info!("0");
 
     send_email(
-        ("Phat Luu", "lnp279@gmail.com"),
+        &APP_CONFIG.email_subscriber,
         "Proxy client bot is running!",
         "",
     )
@@ -95,7 +97,7 @@ async fn make_request(
                         // every 5 mins
                         if last_sent_at.elapsed() > Duration::from_secs(5 * 60) {
                             send_email(
-                                ("Phat Luu", "lnp279@gmail.com"),
+                                &APP_CONFIG.email_subscriber,
                                 "Proxy server seems down!",
                                 "",
                             )
@@ -111,65 +113,38 @@ async fn make_request(
     }
 }
 
-async fn send_email(recipient: (&str, &str), subject: &str, body: &str) {
-    let message = MessageBuilder::new()
-        .from(("MS_DzG3KF", "MS_DzG3KF@trial-ynrw7gyq93j42k8e.mlsender.net"))
-        .to(recipient)
-        .subject(subject)
-        .text_body(body);
+async fn send_email(recipient: &str, subject: &str, body: &str) {
+    let payload = json!({
+        "from": {
+            "email": "clientbot@u2dpn.xyz",
+        },
+        "to":[
+            { "email": recipient }
+        ],
+        "subject": subject,
+        "text": body,
+    });
 
-    SmtpClientBuilder::new("smtp.mailersend.net", 587)
-        .implicit_tls(false)
-        .credentials((
-            "MS_DzG3KF@trial-ynrw7gyq93j42k8e.mlsender.net",
-            "QOsNI89pqoMYIT7q",
-        ))
-        .connect()
-        .await
-        .unwrap()
-        .send(message)
+    // Send the POST request
+    let response = Client::new()
+        .post("https://api.mailersend.com/v1/email")
+        .header("Content-Type", "application/json")
+        .header("X-Requested-With", "XMLHttpRequest")
+        .header(
+            "Authorization",
+            format!("Bearer {}", APP_CONFIG.email_token),
+        )
+        .json(&payload)
+        .send()
         .await
         .unwrap();
 
-    // info!("1");
-
-    // let email = Message::builder()
-    //     .from(
-    //         "MS_DzG3KF <MS_DzG3KF@trial-ynrw7gyq93j42k8e.mlsender.net>"
-    //             .parse()
-    //             .unwrap(),
-    //     )
-    //     .to("Hei <lnp@gmail.com>".parse().unwrap())
-    //     .subject("Happy new year")
-    //     .header(ContentType::TEXT_PLAIN)
-    //     .body(String::from("Be happy!"))
-    //     .unwrap();
-
-    // info!("2");
-
-    // let creds = Credentials::new(
-    //     "c7335a8abd8134".to_owned(),
-    //     "2cbfacb65068bf".to_owned(),
-    // );
-
-    // // Open a remote connection to gmail
-    // let mailer = SmtpTransport::starttls_relay("sandbox.smtp.mailtrap.io")
-    //     .unwrap()
-    //     .credentials(creds)
-    //     .build();
-
-    // info!("3");
-
-    // // Send the email
-    // match mailer.send(&email) {
-    //     Ok(r) => {
-    //         info!("{:#?}", r);
-    //         info!("Email sent successfully!")
-    //     }
-    //     Err(e) => panic!("Could not send email: {e:?}"),
-    // }
-
-    // info!("4");
+    // Check if the request was successful
+    if response.status().is_success() {
+        info!("Email sent successfully!");
+    } else {
+        error!("Failed to send email: {:?}", response.text().await.unwrap());
+    }
 }
 
 #[dynamic]
@@ -189,10 +164,7 @@ pub static APP_CONFIG: AppConfig = {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
-    pub email_server: String,
-    pub email_port: u16,
-    pub email_username: String,
-    pub email_password: String,
+    pub email_token: String,
     pub email_subscriber: String,
 
     pub proxy_addr: String,

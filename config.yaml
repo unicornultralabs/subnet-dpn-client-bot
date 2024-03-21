@@ -1,4 +1,8 @@
-# Dev
+# Email noti
+email_token: mlsn.cd84857d974305438209ba8df4935b785c9e9e67e870756c09cda27451b25c14
+email_subscriber: lnp279@gmail.com
+
+# Proxy configs
 proxy_addr: 54.179.136.252:9091
 download_url: https://vnexpress.net
 proxy_acc:
