@@ -12,7 +12,7 @@ RUN     apt-get update && \
 
 # Copy source code & install
 COPY    . .
-RUN     RUSTFLAGS="-C target-cpu=native" cargo build --release .
+RUN     RUSTFLAGS="-C target-cpu=native" cargo build --release
 RUN		cp /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
 
 FROM    ubuntu:22.04
