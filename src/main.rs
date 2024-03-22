@@ -255,8 +255,8 @@ mod tests {
         let user_deposit_addr = "0x9d31d2c12dd7a2360a07f97f673189a4cd196316";
         let passwd = "Or7miIB36Xop";
         let acc_number_start = 300;
-        let acc_amount = 1;
-        
+        let acc_amount = 700;
+
         let created_at = Utc::now().timestamp();
         let mut proxy_acc_creds_content: String = "".to_string();
         let mut proxy_acc_content: String = "".to_string();
@@ -264,37 +264,22 @@ mod tests {
             let proxy_id = format!("0x{}_{}", user, i);
             proxy_acc_creds_content.push_str(&format!("  - {},{}\n", proxy_id, passwd));
             proxy_acc_content.push_str(&format!(
-                "{},{},{},{},{},{},{},{},{},{},{},{}\n",
-                proxy_id,
-                passwd,
-                300,
-                "",
-                user_deposit_addr,
-                50,
-                0,
-                "",
-                1562822,
-                created_at,
-                "",
-                ""
+                "{},{},{},{},{},{},{},{}\n",
+                proxy_id, passwd, 300, user_deposit_addr, 50, 0, 1562822, created_at,
             ))
         }
 
         let mut proxy_acc_db_content = "".to_string();
         proxy_acc_db_content.push_str(&format!(
-            "{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{}\n",
             "id",
             "passwd",
             "ip_rotation_period",
-            "whitelisted_ip",
             "user_addr",
             "rate_per_kb",
             "rate_per_second",
-            "city_geoname_id",
             "country_geoname_id",
             "created_at",
-            "prioritized_ip",
-            "prioritized_ip_level"
         ));
         proxy_acc_db_content.push_str(&proxy_acc_content);
 
