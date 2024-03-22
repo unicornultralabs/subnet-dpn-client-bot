@@ -13,3 +13,8 @@ proxy_addr: 54.179.136.252:9091 # Dev
 download_url: https://vnexpress.net
 proxy_acc:
   - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f16,Bk3uHdiSIdlk
+telegram_bot_id: 6793786469:AAGj04XYyl2hgJr4kBqfxzhdknAGRgdm4sk
+telegram_group_id: -1002089748095
+telegram_group_thread_id: 667
+telegram_sender: "@dpn_ai_bot"
+telegram_receiver: "@phatngluu"
