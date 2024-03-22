@@ -181,39 +181,39 @@ Message: {}"#,
     }
 }
 
-async fn send_email(recipient: &str, subject: &str, body: &str) {
-    let payload = json!({
-        "from": {
-            "email": APP_CONFIG.email_sender,
-        },
-        "to":[
-            { "email": recipient }
-        ],
-        "subject": subject,
-        "text": if body == "" { subject } else { body},
-    });
+// async fn send_email(recipient: &str, subject: &str, body: &str) {
+//     let payload = json!({
+//         "from": {
+//             "email": APP_CONFIG.email_sender,
+//         },
+//         "to":[
+//             { "email": recipient }
+//         ],
+//         "subject": subject,
+//         "text": if body == "" { subject } else { body},
+//     });
 
-    // Send the POST request
-    let response = Client::new()
-        .post("https://api.mailersend.com/v1/email")
-        .header("Content-Type", "application/json")
-        .header("X-Requested-With", "XMLHttpRequest")
-        .header(
-            "Authorization",
-            format!("Bearer {}", APP_CONFIG.email_token),
-        )
-        .json(&payload)
-        .send()
-        .await
-        .unwrap();
+//     // Send the POST request
+//     let response = Client::new()
+//         .post("https://api.mailersend.com/v1/email")
+//         .header("Content-Type", "application/json")
+//         .header("X-Requested-With", "XMLHttpRequest")
+//         .header(
+//             "Authorization",
+//             format!("Bearer {}", APP_CONFIG.email_token),
+//         )
+//         .json(&payload)
+//         .send()
+//         .await
+//         .unwrap();
 
-    // Check if the request was successful
-    if response.status().is_success() {
-        info!("Email sent body={}", body);
-    } else {
-        error!("Failed to send email: {:?}", response.text().await.unwrap());
-    }
-}
+//     // Check if the request was successful
+//     if response.status().is_success() {
+//         info!("Email sent body={}", body);
+//     } else {
+//         error!("Failed to send email: {:?}", response.text().await.unwrap());
+//     }
+// }
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
@@ -232,11 +232,6 @@ pub static APP_CONFIG: AppConfig = {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
-    pub email_token: String,
-    pub email_sender: String,
-    pub email_subscriber: String,
-    pub email_subject: String,
-
     pub telegram_bot_id: String,
     pub telegram_group_id: String,
     pub telegram_group_thread_id: String,
