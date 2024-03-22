@@ -243,3 +243,71 @@ pub struct AppConfig {
     pub download_url: String,
     pub proxy_acc: Vec<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use tokio::fs;
+
+    #[tokio::test]
+    async fn gen_proxy_accs() {
+        let user = "lewtran";
+        let user_deposit_addr = "0x9d31d2c12dd7a2360a07f97f673189a4cd196316";
+        let passwd = "Or7miIB36Xop";
+        let acc_number_start = 300;
+        let acc_amount = 1;
+        
+        let created_at = Utc::now().timestamp();
+        let mut proxy_acc_creds_content: String = "".to_string();
+        let mut proxy_acc_content: String = "".to_string();
+        for i in acc_number_start..(acc_number_start + acc_amount) {
+            let proxy_id = format!("0x{}_{}", user, i);
+            proxy_acc_creds_content.push_str(&format!("  - {},{}\n", proxy_id, passwd));
+            proxy_acc_content.push_str(&format!(
+                "{},{},{},{},{},{},{},{},{},{},{},{}\n",
+                proxy_id,
+                passwd,
+                300,
+                "",
+                user_deposit_addr,
+                50,
+                0,
+                "",
+                1562822,
+                created_at,
+                "",
+                ""
+            ))
+        }
+
+        let mut proxy_acc_db_content = "".to_string();
+        proxy_acc_db_content.push_str(&format!(
+            "{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            "id",
+            "passwd",
+            "ip_rotation_period",
+            "whitelisted_ip",
+            "user_addr",
+            "rate_per_kb",
+            "rate_per_second",
+            "city_geoname_id",
+            "country_geoname_id",
+            "created_at",
+            "prioritized_ip",
+            "prioritized_ip_level"
+        ));
+        proxy_acc_db_content.push_str(&proxy_acc_content);
+
+        let filename_db = format!(
+            "src/proxyacc_{}_{}_{}_db.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_db, proxy_acc_db_content).await;
+
+        let filename_creds = format!(
+            "src/proxyacc_{}_{}_{}_creds.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_creds, proxy_acc_creds_content).await;
+    }
+}
