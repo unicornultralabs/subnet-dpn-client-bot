@@ -27,9 +27,13 @@ async fn main() {
 
     let last_success_time = Arc::new(AtomicInstant::now());
 
-    send_email(
-        &APP_CONFIG.email_subscriber,
-        &APP_CONFIG.email_subject,
+    // client bot is running
+    send_telegram(
+        &APP_CONFIG.telegram_bot_id,
+        &APP_CONFIG.telegram_group_id,
+        &APP_CONFIG.telegram_group_thread_id,
+        &APP_CONFIG.telegram_sender,
+        &APP_CONFIG.telegram_receiver,
         "client bot is running",
     )
     .await;
@@ -61,9 +65,12 @@ async fn main() {
 
         loop {
             if last_success_time.elapsed() > Duration::from_secs(APP_CONFIG.max_success_timeout) {
-                send_email(
-                    &APP_CONFIG.email_subscriber,
-                    &APP_CONFIG.email_subject,
+                send_telegram(
+                    &APP_CONFIG.telegram_bot_id,
+                    &APP_CONFIG.telegram_group_id,
+                    &APP_CONFIG.telegram_group_thread_id,
+                    &APP_CONFIG.telegram_sender,
+                    &APP_CONFIG.telegram_receiver,
                     "proxy server seems down",
                 )
                 .await;
@@ -104,9 +111,12 @@ async fn make_request(
                             > Duration::from_secs(APP_CONFIG.max_success_timeout)
                         {
                             info!("recovered after failure");
-                            send_email(
-                                &APP_CONFIG.email_subscriber,
-                                &APP_CONFIG.email_subject,
+                            send_telegram(
+                                &APP_CONFIG.telegram_bot_id,
+                                &APP_CONFIG.telegram_group_id,
+                                &APP_CONFIG.telegram_group_thread_id,
+                                &APP_CONFIG.telegram_sender,
+                                &APP_CONFIG.telegram_receiver,
                                 "recovered after failure",
                             )
                             .await;
@@ -123,6 +133,51 @@ async fn make_request(
         Err(e) => {
             error!("cannot create client: err={}", e);
         }
+    }
+}
+
+async fn send_telegram(
+    telegram_bot_id: &str,
+    telegram_group_id: &str,
+    telegram_group_thread_id: &str,
+    from: &str,
+    recipient: &str,
+    message: &str,
+) {
+    let message_send = format!(
+        r#"
+    From: {}
+To: {} 
+Message: {}"#,
+        from, recipient, message
+    );
+
+    let payload = json!({
+        "chat_id": telegram_group_id,
+        "message_thread_id": telegram_group_thread_id,
+        "text": message_send
+    });
+
+    // Send the POST request
+    let response = Client::new()
+        .post(format!(
+            "https://api.telegram.org/bot{}/sendMessage",
+            telegram_bot_id
+        ))
+        .header("Content-Type", "application/json")
+        .json(&payload)
+        .send()
+        .await
+        .unwrap();
+
+    // Check if the request was successful
+    if response.status().is_success() {
+        info!("Send message to telegram, sent payload={}", payload);
+    } else {
+        error!(
+            "Failed to send message to telegram: {:?}",
+            response.text().await.unwrap()
+        );
     }
 }
 
@@ -181,6 +236,12 @@ pub struct AppConfig {
     pub email_sender: String,
     pub email_subscriber: String,
     pub email_subject: String,
+
+    pub telegram_bot_id: String,
+    pub telegram_group_id: String,
+    pub telegram_group_thread_id: String,
+    pub telegram_sender: String,
+    pub telegram_receiver: String,
 
     pub max_success_timeout: u64,
     pub proxy_addr: String,
