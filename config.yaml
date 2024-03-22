@@ -2,7 +2,7 @@
 telegram_bot_id: "BOT_TOKEN"
 telegram_group_id: -1002089748095
 telegram_group_thread_id: 667
-telegram_sender: "@dpn_ai_bot"
+telegram_sender: "Bot biệt thự"
 telegram_receiver: "@phatngluu"
 
 max_success_timeout: 300
