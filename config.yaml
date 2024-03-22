@@ -6,11 +6,12 @@ telegram_sender: "@dpn_ai_bot"
 telegram_receiver: "@phatngluu"
 
 max_success_timeout: 300
+proxy_request_interval: 5
 
 # Proxy configs
-proxy_addr: 54.179.136.252:9091 # Dev
+# proxy_addr: 54.179.136.252:9091 # Dev
 # proxy_addr: 18.141.190.90:9091 # Stg
-# proxy_addr: 13.250.33.117:9091 # Prod
+proxy_addr: 13.250.33.117:9091 # Prod
 download_url: https://vnexpress.net
 proxy_acc:
   - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f16,Bk3uHdiSIdlk

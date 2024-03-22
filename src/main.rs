@@ -54,7 +54,7 @@ async fn main() {
                     last_success_time.clone(),
                 )
                 .await;
-                sleep(Duration::from_secs(1)).await;
+                sleep(Duration::from_secs(APP_CONFIG.proxy_request_interval)).await;
             }
         });
     }
@@ -239,6 +239,7 @@ pub struct AppConfig {
     pub telegram_receiver: String,
 
     pub max_success_timeout: u64,
+    pub proxy_request_interval: u64,
     pub proxy_addr: String,
     pub download_url: String,
     pub proxy_acc: Vec<String>,
