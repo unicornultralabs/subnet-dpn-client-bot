@@ -4,6 +4,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use static_init::dynamic;
+use tokio::signal::unix::{signal, SignalKind};
+use tokio::time::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -60,7 +62,8 @@ async fn main() {
     }
 
     // check for proxy failure, every 1 mins if it's keep failing sent email.
-    tokio::spawn(async move {
+    let sig_term_future = sig_term();
+    let task = tokio::spawn(async move {
         let last_success_time = last_success_time_2.clone();
 
         loop {
@@ -79,8 +82,38 @@ async fn main() {
             sleep(Duration::from_secs(60)).await;
         }
     });
+    
+    tokio::select! {
+        _ = sig_term_future => {
+            info!("Received termination signal. Shutting down gracefully.");
+        }
+        _ = task => {},
+    };
+}
 
-    loop {}
+
+async fn sig_term(
+) -> Result<(), Error> {
+    let mut sigint = signal(SignalKind::interrupt()).unwrap();
+    let mut sigterm = signal(SignalKind::terminate()).unwrap();
+
+    tokio::select! {
+        _ = sigint.recv() => {},
+        _ = sigterm.recv() => {}
+    };
+
+    info!("SIGINT/SIGTERM received");
+
+    send_telegram(
+        &APP_CONFIG.telegram_bot_id,
+        &APP_CONFIG.telegram_group_id,
+        &APP_CONFIG.telegram_group_thread_id,
+        &APP_CONFIG.telegram_sender,
+        &APP_CONFIG.telegram_receiver,
+        "client bot shutdown",
+    )
+    .await;
+    Ok(())
 }
 
 // Function to make an HTTP request using the provided client
