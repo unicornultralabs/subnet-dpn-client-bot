@@ -76,7 +76,7 @@ async fn main() {
                     last_success_time.clone(),
                 )
                 .await;
-                sleep(Duration::from_secs(1)).await;
+                sleep(Duration::from_secs(APP_CONFIG.proxy_request_interval)).await;
             }
         });
     }
@@ -286,25 +286,18 @@ Message: {}"#,
 
 async fn send_email(recipient: &str, subject: &str, body: &str) {
     let payload = json!({
-        "from": {
-            "email": APP_CONFIG.email_sender,
-        },
-        "to":[
-            { "email": recipient }
-        ],
-        "subject": subject,
-        "text": if body == "" { subject } else { body},
+        "chat_id": telegram_group_id,
+        "message_thread_id": telegram_group_thread_id,
+        "text": message_send
     });
 
     // Send the POST request
     let response = Client::new()
-        .post("https://api.mailersend.com/v1/email")
+        .post(format!(
+            "https://api.telegram.org/bot{}/sendMessage",
+            telegram_bot_id
+        ))
         .header("Content-Type", "application/json")
-        .header("X-Requested-With", "XMLHttpRequest")
-        .header(
-            "Authorization",
-            format!("Bearer {}", APP_CONFIG.email_token),
-        )
         .json(&payload)
         .send()
         .await
@@ -312,11 +305,48 @@ async fn send_email(recipient: &str, subject: &str, body: &str) {
 
     // Check if the request was successful
     if response.status().is_success() {
-        info!("Email sent body={}", body);
+        info!("Send message to telegram, sent payload={}", payload);
     } else {
-        error!("Failed to send email: {:?}", response.text().await.unwrap());
+        error!(
+            "Failed to send message to telegram: {:?}",
+            response.text().await.unwrap()
+        );
     }
 }
+
+// async fn send_email(recipient: &str, subject: &str, body: &str) {
+//     let payload = json!({
+//         "from": {
+//             "email": APP_CONFIG.email_sender,
+//         },
+//         "to":[
+//             { "email": recipient }
+//         ],
+//         "subject": subject,
+//         "text": if body == "" { subject } else { body},
+//     });
+
+//     // Send the POST request
+//     let response = Client::new()
+//         .post("https://api.mailersend.com/v1/email")
+//         .header("Content-Type", "application/json")
+//         .header("X-Requested-With", "XMLHttpRequest")
+//         .header(
+//             "Authorization",
+//             format!("Bearer {}", APP_CONFIG.email_token),
+//         )
+//         .json(&payload)
+//         .send()
+//         .await
+//         .unwrap();
+
+//     // Check if the request was successful
+//     if response.status().is_success() {
+//         info!("Email sent body={}", body);
+//     } else {
+//         error!("Failed to send email: {:?}", response.text().await.unwrap());
+//     }
+// }
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
@@ -335,11 +365,6 @@ pub static APP_CONFIG: AppConfig = {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
-    pub email_token: String,
-    pub email_sender: String,
-    pub email_subscriber: String,
-    pub email_subject: String,
-
     pub telegram_bot_id: String,
     pub telegram_group_id: String,
     pub telegram_group_thread_id: String,
@@ -347,6 +372,7 @@ pub struct AppConfig {
     pub telegram_receiver: String,
 
     pub max_success_timeout: u64,
+    pub proxy_request_interval: u64,
     pub proxy_addr: String,
     pub download_url: String,
     pub proxy_acc: Vec<String>,
@@ -367,4 +393,56 @@ pub struct HttpResponse {
 pub struct LastTelegramMessage {
     id: i64,
     text: String
+}
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use tokio::fs;
+
+    #[tokio::test]
+    async fn gen_proxy_accs() {
+        let user = "lewtran";
+        let user_deposit_addr = "0x9d31d2c12dd7a2360a07f97f673189a4cd196316";
+        let passwd = "Or7miIB36Xop";
+        let acc_number_start = 300;
+        let acc_amount = 700;
+
+        let created_at = Utc::now().timestamp();
+        let mut proxy_acc_creds_content: String = "".to_string();
+        let mut proxy_acc_content: String = "".to_string();
+        for i in acc_number_start..(acc_number_start + acc_amount) {
+            let proxy_id = format!("0x{}_{}", user, i);
+            proxy_acc_creds_content.push_str(&format!("  - {},{}\n", proxy_id, passwd));
+            proxy_acc_content.push_str(&format!(
+                "{},{},{},{},{},{},{},{}\n",
+                proxy_id, passwd, 300, user_deposit_addr, 50, 0, 1562822, created_at,
+            ))
+        }
+
+        let mut proxy_acc_db_content = "".to_string();
+        proxy_acc_db_content.push_str(&format!(
+            "{},{},{},{},{},{},{},{}\n",
+            "id",
+            "passwd",
+            "ip_rotation_period",
+            "user_addr",
+            "rate_per_kb",
+            "rate_per_second",
+            "country_geoname_id",
+            "created_at",
+        ));
+        proxy_acc_db_content.push_str(&proxy_acc_content);
+
+        let filename_db = format!(
+            "src/proxyacc_{}_{}_{}_db.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_db, proxy_acc_db_content).await;
+
+        let filename_creds = format!(
+            "src/proxyacc_{}_{}_{}_creds.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_creds, proxy_acc_creds_content).await;
+    }
 }
