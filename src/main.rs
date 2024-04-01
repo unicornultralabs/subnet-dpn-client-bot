@@ -4,19 +4,19 @@ use reqwest::{Client, Response};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use static_init::dynamic;
-use tokio::signal::unix::{signal, SignalKind};
-use tokio::time::error::Error;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use tokio::signal::unix::{signal, SignalKind};
+use tokio::time::error::Error;
 use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    let init_last_telegram_message = LastTelegramMessage { 
-        id: -1, 
-        text: "".to_string()
+    let init_last_telegram_message = LastTelegramMessage {
+        id: -1,
+        text: "".to_string(),
     };
     let arc_last_telegram_message = Arc::new(Mutex::new(init_last_telegram_message));
 
@@ -61,7 +61,6 @@ async fn main() {
             drop(guard_last_telegram_message);
         }
     }
-    
 
     let last_success_time_1 = last_success_time.clone();
     let last_success_time_2 = last_success_time.clone();
@@ -109,10 +108,10 @@ async fn main() {
     let task = tokio::spawn(async move {
         let last_success_time = last_success_time_2.clone();
 
-        let last_telegram_message_clone = Arc::clone(&arc_last_telegram_message); 
+        let last_telegram_message_clone = Arc::clone(&arc_last_telegram_message);
 
         loop {
-            let _last_telegram_message_clone = Arc::clone(&last_telegram_message_clone); 
+            let _last_telegram_message_clone = Arc::clone(&last_telegram_message_clone);
 
             if last_success_time.elapsed() > Duration::from_secs(APP_CONFIG.max_success_timeout) {
                 if APP_CONFIG.telegram_enable {
@@ -148,7 +147,7 @@ async fn main() {
             sleep(Duration::from_secs(60)).await;
         }
     });
-    
+
     tokio::select! {
         _ = sig_term_future => {
             info!("Received termination signal. Shutting down gracefully.");
@@ -157,9 +156,7 @@ async fn main() {
     };
 }
 
-
-async fn sig_term(
-) -> Result<(), Error> {
+async fn sig_term() -> Result<(), Error> {
     let mut sigint = signal(SignalKind::interrupt()).unwrap();
     let mut sigterm = signal(SignalKind::terminate()).unwrap();
 
@@ -254,16 +251,12 @@ async fn make_request(
     }
 }
 
-async fn delete_telegram_message (
-    telegram_bot_id: &str,
-    telegram_group_id: &str,
-    message_id: i64
-) {
+async fn delete_telegram_message(telegram_bot_id: &str, telegram_group_id: &str, message_id: i64) {
     let payload = json!({
         "chat_id": telegram_group_id,
         "message_id": message_id,
     });
-    
+
     let response = Client::new()
         .post(format!(
             "https://api.telegram.org/bot{}/deleteMessage",
@@ -291,7 +284,7 @@ async fn send_telegram(
     recipient: &str,
     environment: &str,
     message: &str,
-) -> Result<i64, Box<dyn std::error::Error>>  {
+) -> Result<i64, Box<dyn std::error::Error>> {
     let message_send = format!(
         r#"
     From: {}
@@ -328,42 +321,41 @@ Message:({}) {}"#,
         error!("Failed to send message to telegram: {:?}", error_message);
         Err(error_message.into())
     }
-
 }
 
-async fn send_email(recipient: &str, subject: &str, body: &str) {
-    let payload = json!({
-        "from": {
-            "email": APP_CONFIG.email_sender,
-        },
-        "to":[
-            { "email": recipient }
-        ],
-        "subject": subject,
-        "text": if body == "" { subject } else { body},
-    });
+// async fn send_email(recipient: &str, subject: &str, body: &str) {
+//     let payload = json!({
+//         "from": {
+//             "email": APP_CONFIG.email_sender,
+//         },
+//         "to":[
+//             { "email": recipient }
+//         ],
+//         "subject": subject,
+//         "text": if body == "" { subject } else { body},
+//     });
 
-    // Send the POST request
-    let response = Client::new()
-        .post("https://api.mailersend.com/v1/email")
-        .header("Content-Type", "application/json")
-        .header("X-Requested-With", "XMLHttpRequest")
-        .header(
-            "Authorization",
-            format!("Bearer {}", APP_CONFIG.email_token),
-        )
-        .json(&payload)
-        .send()
-        .await
-        .unwrap();
+//     // Send the POST request
+//     let response = Client::new()
+//         .post("https://api.mailersend.com/v1/email")
+//         .header("Content-Type", "application/json")
+//         .header("X-Requested-With", "XMLHttpRequest")
+//         .header(
+//             "Authorization",
+//             format!("Bearer {}", APP_CONFIG.email_token),
+//         )
+//         .json(&payload)
+//         .send()
+//         .await
+//         .unwrap();
 
-    // Check if the request was successful
-    if response.status().is_success() {
-        info!("Email sent body={}", body);
-    } else {
-        error!("Failed to send email: {:?}", response.text().await.unwrap());
-    }
-}
+//     // Check if the request was successful
+//     if response.status().is_success() {
+//         info!("Email sent body={}", body);
+//     } else {
+//         error!("Failed to send email: {:?}", response.text().await.unwrap());
+//     }
+// }
 
 #[dynamic]
 pub static APP_CONFIG: AppConfig = {
@@ -382,11 +374,6 @@ pub static APP_CONFIG: AppConfig = {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AppConfig {
-    pub email_token: String,
-    pub email_sender: String,
-    pub email_subscriber: String,
-    pub email_subject: String,
-
     pub telegram_bot_id: String,
     pub telegram_group_id: String,
     pub telegram_group_thread_id: String,
@@ -396,6 +383,7 @@ pub struct AppConfig {
     pub telegram_env: String,
 
     pub max_success_timeout: u64,
+    pub proxy_request_interval: u64,
     pub proxy_addr: String,
     pub download_url: String,
     pub proxy_acc: Vec<String>,
@@ -409,11 +397,63 @@ pub struct HttpResult {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct HttpResponse {
     ok: bool,
-    result: HttpResult
+    result: HttpResult,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LastTelegramMessage {
     id: i64,
-    text: String
+    text: String,
+}
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use tokio::fs;
+
+    #[tokio::test]
+    async fn gen_proxy_accs() {
+        let user = "lewtran";
+        let user_deposit_addr = "0x9d31d2c12dd7a2360a07f97f673189a4cd196316";
+        let passwd = "Or7miIB36Xop";
+        let acc_number_start = 300;
+        let acc_amount = 700;
+
+        let created_at = Utc::now().timestamp();
+        let mut proxy_acc_creds_content: String = "".to_string();
+        let mut proxy_acc_content: String = "".to_string();
+        for i in acc_number_start..(acc_number_start + acc_amount) {
+            let proxy_id = format!("0x{}_{}", user, i);
+            proxy_acc_creds_content.push_str(&format!("  - {},{}\n", proxy_id, passwd));
+            proxy_acc_content.push_str(&format!(
+                "{},{},{},{},{},{},{},{}\n",
+                proxy_id, passwd, 300, user_deposit_addr, 50, 0, 1562822, created_at,
+            ))
+        }
+
+        let mut proxy_acc_db_content = "".to_string();
+        proxy_acc_db_content.push_str(&format!(
+            "{},{},{},{},{},{},{},{}\n",
+            "id",
+            "passwd",
+            "ip_rotation_period",
+            "user_addr",
+            "rate_per_kb",
+            "rate_per_second",
+            "country_geoname_id",
+            "created_at",
+        ));
+        proxy_acc_db_content.push_str(&proxy_acc_content);
+
+        let filename_db = format!(
+            "src/proxyacc_{}_{}_{}_db.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_db, proxy_acc_db_content).await;
+
+        let filename_creds = format!(
+            "src/proxyacc_{}_{}_{}_creds.csv",
+            user, acc_number_start, acc_amount
+        );
+        let _ = fs::write(filename_creds, proxy_acc_creds_content).await;
+    }
 }
