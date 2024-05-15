@@ -16,7 +16,18 @@ proxy_request_interval: 5
 proxy_addr: 13.251.184.194:9091 # Prod
 download_urls:
   - https://samsung.com
-  - https://www.facebook.com
-  - https://github.com
+  - https://facebook.com
+  - https://amazon.com
+  - https://microsoft.com
+  - https://oracle.com
+  - https://spacex.com
+  - https://foxconn.com
+  - https://ibm.com
+  - https://hitachi-homeappliances.com
+  - https://dell.com
+  - https://asus.com
+  - https://acer.com
+  - https://lenovo.com
+  - https://lg.com
 proxy_acc:
   - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f16,Bk3uHdiSIdlk
