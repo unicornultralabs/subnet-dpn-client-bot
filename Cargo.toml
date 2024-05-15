@@ -17,3 +17,4 @@ reqwest = { version = "0.12.0", features = ["default", "json"] }
 atomic-instant = "0.1.1"
 rustelebot = "0.3.2"
 chrono = "0.4.35"
+rand = "0.8.5"

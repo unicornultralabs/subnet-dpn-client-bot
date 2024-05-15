@@ -1,5 +1,6 @@
 use atomic_instant::AtomicInstant;
 use log::{error, info};
+use rand::Rng;
 use reqwest::{Client, Response};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -190,7 +191,9 @@ async fn make_request(
     password: &str,
     last_success_time: Arc<AtomicInstant>,
 ) -> Result<i64, Box<dyn std::error::Error>> {
-    let url = &APP_CONFIG.download_url;
+    let download_urls_len = APP_CONFIG.download_urls.clone().len();
+    let random_num = rand::thread_rng().gen_range(0..download_urls_len);
+    let url = APP_CONFIG.download_urls.get(random_num).unwrap();
 
     match reqwest::Client::builder()
         .proxy(
@@ -202,7 +205,7 @@ async fn make_request(
     {
         Ok(client) => {
             // Make a GET request
-            match client.get(url).send().await {
+            match client.get(url.clone()).send().await {
                 Ok(rsp) => match rsp.text().await {
                     Ok(content) => {
                         // info!("{}", content);
@@ -385,7 +388,7 @@ pub struct AppConfig {
     pub max_success_timeout: u64,
     pub proxy_request_interval: u64,
     pub proxy_addr: String,
-    pub download_url: String,
+    pub download_urls: Vec<String>,
     pub proxy_acc: Vec<String>,
 }
 
