@@ -14,6 +14,9 @@ proxy_request_interval: 5
 # proxy_addr: 54.179.136.252:9091 # Dev
 # proxy_addr: 18.141.190.90:9091 # Stg
 proxy_addr: 13.251.184.194:9091 # Prod
-download_url: https://samsung.com
+download_urls:
+  - https://samsung.com
+  - https://www.facebook.com
+  - https://github.com
 proxy_acc:
   - 0xf19eb91b101e9f400893ddfaa57151678612af75511e490a06335c85a9c33f16,Bk3uHdiSIdlk
