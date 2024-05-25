@@ -11,9 +11,8 @@ max_success_timeout: 300
 proxy_request_interval: 5
 
 # Proxy configs
-# proxy_addr: 54.179.136.252:9091 # Dev
-# proxy_addr: 18.141.190.90:9091 # Stg
-proxy_addr: 13.251.184.194:9091 # Prod
+proxy_addr: 18.141.12.1:9091 # Dev-SA
+# proxy_addr: 35.171.140.196:9091 # Prod-SA
 download_urls:
   - https://samsung.com
   - https://facebook.com
