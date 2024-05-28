@@ -48,15 +48,19 @@ async fn main() {
             "client bot is running",
         )
         .await;
-        
+
         if let Ok(telegram_message_id) = telegram_running_msg_res {
             let mut guard_last_telegram_message = arc_last_telegram_message.lock().unwrap();
-    
+
             if *guard_last_telegram_message.text.clone() != "client bot is running".to_string() {
                 guard_last_telegram_message.text = "client bot is running".to_string();
             } else {
-                delete_telegram_message(&APP_CONFIG.telegram_bot_id,
-                    &APP_CONFIG.telegram_group_id, guard_last_telegram_message.id).await;
+                delete_telegram_message(
+                    &APP_CONFIG.telegram_bot_id,
+                    &APP_CONFIG.telegram_group_id,
+                    guard_last_telegram_message.id,
+                )
+                .await;
             }
             guard_last_telegram_message.id = telegram_message_id;
             drop(guard_last_telegram_message);
@@ -69,10 +73,10 @@ async fn main() {
     for i in 0..proxy_acc.len() {
         let (proxy_username, proxy_password) = proxy_acc[i].clone();
         let last_success_time = last_success_time_1.clone();
-        let last_telegram_message_clone = Arc::clone(&arc_last_telegram_message); 
+        let last_telegram_message_clone = Arc::clone(&arc_last_telegram_message);
         tokio::spawn(async move {
             info!("spawned for {}", proxy_username);
-            let _last_telegram_message_clone = Arc::clone(&last_telegram_message_clone); 
+            let _last_telegram_message_clone = Arc::clone(&last_telegram_message_clone);
             loop {
                 let __last_telegram_message_clone = Arc::clone(&_last_telegram_message_clone);
                 let telegram_seems_down_msg_res = make_request(
@@ -84,15 +88,23 @@ async fn main() {
                 .await;
                 if APP_CONFIG.telegram_enable {
                     if let Ok(telegram_message_id) = telegram_seems_down_msg_res {
-                        let mut guard_last_telegram_message = __last_telegram_message_clone.lock().unwrap();
-                
-                        if *guard_last_telegram_message.text.clone() != "recovered after failure".to_string() {
-                            guard_last_telegram_message.text = "recovered after failure".to_string();
+                        let mut guard_last_telegram_message =
+                            __last_telegram_message_clone.lock().unwrap();
+
+                        if *guard_last_telegram_message.text.clone()
+                            != "recovered after failure".to_string()
+                        {
+                            guard_last_telegram_message.text =
+                                "recovered after failure".to_string();
                         } else {
                             let message_id = guard_last_telegram_message.id;
                             tokio::spawn(async move {
-                                _ = delete_telegram_message(&APP_CONFIG.telegram_bot_id.clone(),
-                                &APP_CONFIG.telegram_group_id.clone(), message_id).await;
+                                _ = delete_telegram_message(
+                                    &APP_CONFIG.telegram_bot_id.clone(),
+                                    &APP_CONFIG.telegram_group_id.clone(),
+                                    message_id,
+                                )
+                                .await;
                             });
                         }
                         guard_last_telegram_message.id = telegram_message_id;
@@ -126,17 +138,25 @@ async fn main() {
                         "proxy server seems down",
                     )
                     .await;
-    
+
                     if let Ok(telegram_message_id) = telegram_seems_down_msg_res {
-                        let mut guard_last_telegram_message = _last_telegram_message_clone.lock().unwrap();
-                
-                        if *guard_last_telegram_message.text.clone() != "proxy server seems down".to_string() {
-                            guard_last_telegram_message.text = "proxy server seems down".to_string();
+                        let mut guard_last_telegram_message =
+                            _last_telegram_message_clone.lock().unwrap();
+
+                        if *guard_last_telegram_message.text.clone()
+                            != "proxy server seems down".to_string()
+                        {
+                            guard_last_telegram_message.text =
+                                "proxy server seems down".to_string();
                         } else {
                             let message_id = guard_last_telegram_message.id;
                             tokio::spawn(async move {
-                                _ = delete_telegram_message(&APP_CONFIG.telegram_bot_id.clone(),
-                                &APP_CONFIG.telegram_group_id.clone(), message_id).await;
+                                _ = delete_telegram_message(
+                                    &APP_CONFIG.telegram_bot_id.clone(),
+                                    &APP_CONFIG.telegram_group_id.clone(),
+                                    message_id,
+                                )
+                                .await;
                             });
                         }
                         guard_last_telegram_message.id = telegram_message_id;
@@ -180,7 +200,7 @@ async fn sig_term() -> Result<(), Error> {
         )
         .await;
     }
-    
+
     Ok(())
 }
 
@@ -209,7 +229,12 @@ async fn make_request(
                 Ok(rsp) => match rsp.text().await {
                     Ok(content) => {
                         // info!("{}", content);
-                        info!("used {} bytes", content.as_bytes().len());
+                        info!(
+                            "{} -> {} used {} bytes",
+                            username,
+                            url.clone(),
+                            content.as_bytes().len()
+                        );
                         if last_success_time.elapsed()
                             > Duration::from_secs(APP_CONFIG.max_success_timeout)
                         {
@@ -225,10 +250,10 @@ async fn make_request(
                                     "recovered after failure",
                                 )
                                 .await;
-    
+
                                 if let Ok(telegram_message_id) = telegram_seems_down_msg_res {
                                     return Ok(telegram_message_id);
-                                } 
+                                }
                             }
                         }
                         last_success_time.set_now();
