@@ -2,7 +2,7 @@ version: "3"
 services:
   client_bot:
     container_name: client-bot
-    image: yadsendewlung/subnet-dpn-client-bot:main
+    image: tienu2u/subnet-dpn-client-bot:latest
     build: .
     restart: always
     volumes:
