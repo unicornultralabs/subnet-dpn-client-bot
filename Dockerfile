@@ -2,22 +2,27 @@ FROM rustlang/rust:nightly-bookworm as build
 
 WORKDIR /app
 
-# Runtime image
-RUN     apt-get update
-ARG     DEBIAN_FRONTEND=noninteractive
-RUN     apt-get update && \
-	apt-get install -y gcc llvm clang libtool && \
-	apt-get install -y protobuf-compiler && \
-	rm -rf /var/lib/apt/lists/*
+# Install dependencies (combine into one step for efficiency)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc llvm clang libtool protobuf-compiler && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy source code & install
-COPY    . .
-RUN     RUSTFLAGS="-C target-cpu=native" cargo build --release
-RUN		cp /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
+# Cache dependencies to speed up builds
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN RUSTFLAGS="-C target-cpu=native" cargo build --release && rm -rf src
 
-FROM    ubuntu:22.04
-RUN     apt-get update && apt-get -y install libssl3
-COPY    --from=build /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
-WORKDIR /
+# Copy actual source code and build
+COPY . .
+RUN RUSTFLAGS="-C target-cpu=native" cargo build --release && \
+    strip /app/target/release/proxy_client_bot
 
-ENTRYPOINT     ["proxy_client_bot"]
+# Minimal runtime image
+FROM ubuntu:22.04
+
+# Install only necessary runtime dependencies
+RUN apt-get update && apt-get -y install --no-install-recommends libssl3 && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/target/release/proxy_client_bot /usr/local/bin/proxy_client_bot
+
+ENTRYPOINT ["proxy_client_bot"]
